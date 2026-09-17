@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Baseball Life MAX</title>
+<style>
+:root{--bg:#07120d;--card:#0d2118;--line:#234c39;--txt:#f3f7f4;--mut:#a8c2b3;--acc:#67e8a5;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(150deg,#06100b,#10251b);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif}
+main{max-width:900px;margin:auto;padding:22px 15px 80px}h1{margin:4px 0;font-size:34px}.sub{color:var(--mut);line-height:1.6}
+.card{background:#0d2118ee;border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,button{width:100%;padding:12px;border-radius:12px;border:1px solid #315b47;background:#09170f;color:white;font:inherit}button{background:#176b46;font-weight:800;cursor:pointer}
+.chips span{display:inline-block;margin:3px;padding:6px 9px;border:1px solid #315b47;border-radius:999px;color:var(--acc);font-size:12px}
+.stat{display:grid;grid-template-columns:140px 1fr 45px;gap:8px;align-items:center;margin:8px 0}.bar{height:9px;background:#1a382a;border-radius:9px;overflow:hidden}.bar i{display:block;width:100%;height:100%;background:var(--acc)}
+.big{font-size:26px;font-weight:900;color:var(--gold)}.log{line-height:1.7;color:#d8e6dd;max-height:300px;overflow:auto}.hidden{display:none}.dice{font-size:40px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.stat{grid-template-columns:115px 1fr 40px}h1{font-size:28px}}
+</style></head>
+<body><main>
+<section id="create">
+<h1>⚾ Baseball Life MAX</h1>
+<p class="sub">真實棒球世界取向的生涯模擬原型。你的角色是唯一的 MAX 球員：永久滿能力、永不受傷、永不衰退，所有玩家 D6 判定固定為 6。</p>
+<div class="card"><h2>建立球員</h2><div class="grid">
+<div><label>姓名</label><input id="name" value="Alvin"></div>
+<div><label>背號</label><input id="num" type="number" value="1"></div>
+<div><label>國籍／起點</label><select id="country"><option>台灣</option><option>日本</option><option>美國</option><option>韓國</option></select></div>
+<div><label>守位</label><select id="pos"><option>二刀流</option><option>投手</option><option>捕手</option><option>內野手</option><option>外野手</option></select></div>
+<div><label>學生路線</label><select id="school"><option>台灣高中棒球</option><option>日本高校野球</option><option>美國 High School</option><option>韓國高中棒球</option></select></div>
+<div><label>投打</label><select><option>右投右打</option><option>右投左打</option><option>左投左打</option><option>左投右打</option></select></div>
+</div><p class="chips"><span>傷病 0%</span><span>能力衰退 0</span><span>D6 永久 6</span><span>全球種 MAX</span></p>
+<button onclick="start()">開始生涯｜16歲・高一</button></div></section>
+
+<section id="game" class="hidden">
+<div class="card"><div class="grid"><div><div id="who" class="big"></div><div id="meta" class="sub"></div></div><div><div>本次判定</div><div class="dice">⚅ <b>6</b></div></div></div></div>
+<div class="card"><h2>MAX 能力</h2><div id="stats"></div></div>
+<div class="card"><h2>投手球種</h2><div class="chips" id="pitches"></div></div>
+<div class="card"><h2>生涯</h2><p id="phase" class="big">高一春季</p><button onclick="advance()">推進一個階段 🎲6</button><button style="margin-top:8px;background:#243f33" onclick="save()">儲存進度</button><div id="log" class="log"></div></div>
+</section>
+</main>
+<script>
+const abilities=["打擊 Contact","長打 Power","選球 Discipline","對左投","對右投","短打","投球球威","控球 Control","球速 Velocity","投手體力","牽制","守備 Fielding","接球","臂力","傳球準確","反應","跑速 Speed","跑壘判斷","盜壘","耐久度"];
+const pitchList=["四縫線 4-Seam","二縫線 2-Seam","伸卡 Sinker","卡特 Cutter","滑球 Slider","橫掃球 Sweeper","曲球 Curve","彈指曲球 Knuckle Curve","變速 Changeup","圈指變速 Circle Change","指叉 Forkball","快速指叉 Splitter","掌心球 Palmball"];
+let state={age:16,year:2026,step:0,season:[],salary:0};
+const phases=["高一春季","高一夏季","高一秋季","高二春季","高二夏季","高二秋季","高三春季","高三夏季","畢業／進路選擇","選秀／國際簽約","職業新人年","職業第2年","職業第3年","國際賽","FA／旅外市場","巔峰期","名人堂級生涯"];
+function start(){
+ document.querySelector("#create").classList.add("hidden");document.querySelector("#game").classList.remove("hidden");
+ let n=document.querySelector("#name").value||"Player",p=document.querySelector("#pos").value;
+ document.querySelector("#who").textContent=n+" #"+document.querySelector("#num").value;
+ document.querySelector("#meta").textContent=document.querySelector("#country").value+"｜"+p+"｜OVR 100｜健康 100%";
+ document.querySelector("#stats").innerHTML=abilities.map(x=>`<div class="stat"><span>${x}</span><div class="bar"><i></i></div><b>100</b></div>`).join("");
+ document.querySelector("#pitches").innerHTML=pitchList.map(x=>`<span>${x}｜MAX 100</span>`).join("");
+ log("生涯開始。所有玩家能力鎖定 100；傷病事件已停用；D6 鎖定為 6。"); render();
+}
+function advance(){
+ state.step++; if(state.step%3===0)state.age++;
+ let p=phases[Math.min(state.step,phases.length-1)];
+ let hr=18+Math.floor(state.step*1.8), avg=(.365+Math.min(state.step,10)*.003).toFixed(3);
+ let era=Math.max(.55,1.20-state.step*.04).toFixed(2);
+ state.salary+=Math.max(0,state.step-8)*850;
+ log(`🎲 6｜${p}：MAX 判定成功。模擬表現：AVG ${avg}、HR ${hr}；投球 ERA ${era}。無傷病、無能力下降。`);
+ render();
+}
+function render(){document.querySelector("#phase").textContent=phases[Math.min(state.step,phases.length-1)];}
+function log(t){let d=document.createElement("div");d.textContent=t;document.querySelector("#log").prepend(d)}
+function save(){localStorage.setItem("baseballLifeMAX",JSON.stringify(state));log("進度已儲存在這台裝置。")}
+</script></body></html>
