@@ -17,11 +17,16 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 <label>類型<select id="type"><option>二刀流</option><option>投手</option><option>野手</option></select></label><label>投手定位<select id="prole"><option>先發</option><option>後援</option><option>終結者</option></select></label>
 <label>主守位<select id="pos"><option>游擊手</option><option>捕手</option><option>一壘手</option><option>二壘手</option><option>三壘手</option><option>左外野手</option><option>中外野手</option><option>右外野手</option></select></label>
 <label>副守位<select id="pos2"><option>無</option><option>捕手</option><option>一壘手</option><option>二壘手</option><option>三壘手</option><option>游擊手</option><option>左外野手</option><option>中外野手</option><option>右外野手</option></select></label>
-<label>高中<select id="school"></select></label></div><p class="mut">能力、所有球種、所有守位、特殊天賦＝100 MAX｜永不受傷｜不衰退｜你的 D6 永遠是 6。</p><button class="accent" onclick="newGame()">開始高中生涯</button></div>
+<label>高中<select id="school">
+<option>平鎮高中</option><option>穀保家商</option><option>鶯歌工商</option><option>高苑工商</option>
+<option>南英商工</option><option>台東體中</option><option>普門中學</option><option>美和高中</option>
+<option>西苑高中</option><option>東石高中</option><option>成德高中</option><option>彰化藝中</option>
+<option>玉里高中</option><option>羅東高工</option><option>善化高中</option><option>嘉義高中</option>
+</select></label></div><p class="mut">能力、所有球種、所有守位、特殊天賦＝100 MAX｜永不受傷｜不衰退｜你的 D6 永遠是 6。</p><button class="accent" onclick="newGame()">開始高中生涯</button></div>
 <div id="play" class="hide">
 <div class="card"><div id="profile"></div><div id="schedule"></div></div>
 <div class="card"><h2 id="gameTitle"></h2><div id="gameBody"></div></div>
-<div class="card"><h2>高一成績</h2><div id="stats"></div></div></div>
+<div class="card"><h2>高中生涯成績</h2><div id="stats"></div></div></div>
 </section>
 
 <section id="world" class="hide"><div class="card"><h2>🌏 棒球世界</h2><div class="tabs" id="leagueTabs"></div><div id="leagueView"></div></div></section>
@@ -29,7 +34,12 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 <section id="record" class="hide"><div class="card"><h2>📖 生涯紀錄</h2><div id="history"></div><button onclick="save()">儲存</button><button onclick="reset()">刪除生涯</button></div></section>
 </main><script>
 "use strict";const KEY="BLMAX_WORLD_3";
-const SCHOOL={台灣:["平鎮高中","穀保家商","高苑工商","鶯歌工商","台東體中","南英商工"],日本:["仙台育英","花巻東","橫濱高校","健大高崎","履正社","智辯和歌山"],韓國:["德壽高中","首爾高中","釜山高中","慶南高中"],美國:["IMG Academy","Orange Lutheran High School","Harvard-Westlake School","JSerra Catholic High School"]};
+const SCHOOL={
+台灣:["平鎮高中","穀保家商","鶯歌工商","高苑工商","南英商工","台東體中","普門中學","美和高中","西苑高中","東石高中","成德高中","彰化藝中","玉里高中","羅東高工","善化高中","嘉義高中"],
+日本:["仙台育英","花卷東","橫濱高校","健大高崎","大阪桐蔭","履正社","智辯和歌山","廣陵高校","沖繩尚學","慶應義塾"],
+韓國:["德壽高中","首爾高中","釜山高中","慶南高中","光州第一高中","仁川高中"],
+美國:["IMG Academy","Orange Lutheran High School","Harvard-Westlake School","JSerra Catholic High School","Mater Dei High School","Bishop Gorman High School"]
+};
 const TEAM_ZH={
 "New York Yankees":"紐約洋基","Boston Red Sox":"波士頓紅襪","Baltimore Orioles":"巴爾的摩金鶯","Tampa Bay Rays":"坦帕灣光芒","Toronto Blue Jays":"多倫多藍鳥","Cleveland Guardians":"克里夫蘭守護者","Detroit Tigers":"底特律老虎","Kansas City Royals":"堪薩斯市皇家","Minnesota Twins":"明尼蘇達雙城","Chicago White Sox":"芝加哥白襪","Houston Astros":"休士頓太空人","Los Angeles Angels":"洛杉磯天使","Seattle Mariners":"西雅圖水手","Texas Rangers":"德州遊騎兵","Athletics":"運動家",
 "Atlanta Braves":"亞特蘭大勇士","Miami Marlins":"邁阿密馬林魚","New York Mets":"紐約大都會","Philadelphia Phillies":"費城費城人","Washington Nationals":"華盛頓國民","Chicago Cubs":"芝加哥小熊","Cincinnati Reds":"辛辛那提紅人","Milwaukee Brewers":"密爾瓦基釀酒人","Pittsburgh Pirates":"匹茲堡海盜","St. Louis Cardinals":"聖路易紅雀","Arizona Diamondbacks":"亞利桑那響尾蛇","Colorado Rockies":"科羅拉多洛磯","Los Angeles Dodgers":"洛杉磯道奇","San Diego Padres":"聖地牙哥教士","San Francisco Giants":"舊金山巨人"};
@@ -48,10 +58,11 @@ const KBO=["LG雙子","韓華鷹","SSG登陸者","三星獅","NC恐龍","KT巫�
 const CPBL=["中信兄弟","統一7-ELEVEn獅","樂天桃猿","富邦悍將","味全龍","台鋼雄鷹"];
 let S={player:null,game:0,year:1,stage:"高中",pro:null,offer:null,stats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0,po:0,a:0,e:0},history:[],scouts:{},draft:null};let league="MLB";
 function $(x){return document.getElementById(x)} function show(id){["career","world","scout","record"].forEach(x=>$(x).classList.toggle("hide",x!==id));if(id==="world")renderWorld();if(id==="scout")renderScout();if(id==="record")renderHistory()}
-function schools(){$("school").innerHTML=SCHOOL[$("nation").value].map(x=>`<option>${x}</option>`).join("")}
-function newGame(){S.player={name:$("name").value||"Player",nation:$("nation").value,birthplace:$("birthplace").value,dob:$("dob").value,height:$("height").value,weight:$("weight").value,num:$("num").value,hand:$("hand").value,type:$("type").value,prole:$("prole").value,pos:$("pos").value,pos2:$("pos2").value,school:$("school").value};S.history.push(`建立球員｜${S.player.name}｜${S.player.school}`);save(false);renderCareer()}
+function schools(){let n=$("nation")?.value||"台灣",list=SCHOOL[n]||SCHOOL["台灣"];if($("school"))$("school").innerHTML=list.map(x=>`<option value="${x}">${x}</option>`).join("")}
+function newGame(){if(!$("school")||!$("school").value){schools();alert("請先選擇高中");return}S.stage="高中";S.year=1;S.game=0;S.offer=null;S.pro=null;S.player={name:$("name").value||"Player",nation:$("nation").value,birthplace:$("birthplace").value,dob:$("dob").value,height:$("height").value,weight:$("weight").value,num:$("num").value,hand:$("hand").value,type:$("type").value,prole:$("prole").value,pos:$("pos").value,pos2:$("pos2").value,school:$("school").value};S.history.push(`建立球員｜${S.player.name}｜${S.player.school}`);save(false);renderCareer()}
 const ROLES=["野手先發","投手先發＋打擊","野手先發","野手先發","投手先發＋打擊","野手先發"];
-function renderCareer(){if(!S.player)return;$("setup").classList.add("hide");$("play").classList.remove("hide");let p=S.player;$("profile").innerHTML=`<b>${p.name}</b>｜#${p.num}｜${p.nation}・${p.birthplace}<br>${p.height}cm / ${p.weight}kg｜${p.hand}｜${p.type}｜${p.prole}＋${p.pos}${p.pos2!=="無"?"／"+p.pos2:""}<br><span class="pill">${S.stage}${S.pro?"｜"+S.pro.team:""}</span><br><span class="gold">全能力 100 MAX｜全球種 MAX｜全守位 MAX｜永不受傷｜D6＝6</span>`;$("schedule").innerHTML=`<h3>高${S.year}正式賽：2投4打</h3>`+ROLES.map((r,i)=>`<span class="pill">${i<S.game?"✓":i===S.game?"▶":"○"} 第${i+1}戰 ${r}</span>`).join("");renderGame();renderStats()}
+function oldSaveNotice(){if(S.player&&S.stage!=="高中"){let el=document.createElement("div");el.className="event";el.innerHTML="<b>你目前載入的是舊存檔</b><br>所以會直接停在 "+S.stage+" 階段，不會重新顯示高中篇。若要從高一開始測試，請按「重新開始／清除存檔」。";document.querySelector("main")?.prepend(el)}}
+function renderCareer(){if(!S.player)return;$("setup").classList.add("hide");$("play").classList.remove("hide");let p=S.player;$("profile").innerHTML=`<b>${p.name}</b>｜#${p.num}｜${p.nation}・${p.birthplace}<br>${p.height}cm / ${p.weight}kg｜${p.hand}｜${p.type}｜${p.prole}＋${p.pos}${p.pos2!=="無"?"／"+p.pos2:""}<br><span class="pill">${S.stage==="高中"?`高中第${S.year}年｜${p.school}`:S.stage}${S.pro?"｜"+S.pro.team:""}</span><br><span class="gold">全能力 100 MAX｜全球種 MAX｜全守位 MAX｜永不受傷｜D6＝6</span>`;$("schedule").innerHTML=S.stage==="高中"?`<div class="event"><b>🏫 高中棒球篇｜高${S.year}</b><br>學校：${p.school}<br>本學年正式賽主線：2 場投手先發＋4 場野手先發<br>另計校內競爭、盃賽、淘汰賽與球探事件；MAX 不代表自動贏球</div><h3>高${S.year}正式賽</h3>`+ROLES.map((r,i)=>`<span class="pill">${i<S.game?"✓":i===S.game?"▶":"○"} 第${i+1}戰 ${r}</span>`).join(""):`<div class="event"><b>高中篇已完成</b><br>目前階段：${S.stage}</div>`;renderGame();renderStats()}
 function renderGame(){if(S.stage==="職業"&&S.pro){$("gameTitle").textContent=`職業生涯｜${S.pro.team}`;$("gameBody").innerHTML=proPanel();return}if(S.offer){renderOffer();return}if(S.stage==="大學"){$("gameTitle").textContent="大學棒球篇";$("gameBody").innerHTML="已進入升學路線；真實大學賽制將在下一資料層接入。";return}if(S.game>=6){$("gameTitle").textContent=`高${S.year}正式賽完成`;$("gameBody").innerHTML=`六場正式賽完成。<br><button onclick="show('scout')">查看球探</button> ${S.year<3?`<button class="accent" onclick="nextSchoolYear()">進入高${S.year+1}</button>`:`<button class="accent" onclick="careerDecision()">進入畢業／選秀階段</button>`}`;return}let role=ROLES[S.game];$("gameTitle").textContent=`第 ${S.game+1} 戰｜${role}`;$("gameBody").innerHTML=role.includes("投手")?`<div class="event">今天你是先發投手，而且會進入打序。投球與打擊分開結算。</div><button class="accent" onclick="playPitcher()">開始投手場</button>`:`<div class="event">今天你以${S.player.pos}先發：打擊＋守備，不登板。</div><button class="accent" onclick="playHitter()">開始野手場</button>`}
 function bat(){let r=Math.random(),o=r<.20?"全壘打":r<.42?"二壘安打":r<.68?"一壘安打":r<.78?"四壞":r<.91?"強勁出局":"三壘安打";S.stats.ab+=o==="四壞"?0:1;if(["全壘打","二壘安打","一壘安打","三壘安打"].includes(o))S.stats.h++;if(o==="全壘打"){S.stats.hr++;S.stats.rbi+=1+Math.floor(Math.random()*3)}return o}
 function scoutTick(){["CPBL","NPB","KBO","MLB"].forEach(l=>{S.scouts[l]??={views:0,interest:0};S.scouts[l].views+=1+Math.floor(Math.random()*2);S.scouts[l].interest=Math.min(100,S.scouts[l].interest+8+Math.floor(Math.random()*8))})}
@@ -77,9 +88,66 @@ function renderOffer(){
  $("gameTitle").textContent="職業生涯入口";
  $("gameBody").innerHTML=`<div class="event"><b>${o.team}</b><br>${o.method}｜第${o.round}輪<br>球團將你評為：80級頂尖二刀流／世代級天賦</div><button class="accent" onclick="signPro()">接受並簽約</button> <button onclick="careerDecision()">重新選擇路線</button>`;
 }
-function signPro(){let o=S.offer;S.stage="職業";S.pro={league:o.league,team:o.team,rawTeam:o.rawTeam,status:o.league==="MLB"?"新人聯盟／Complex":o.league==="NPB"?"支配下候補／球團編成":o.league==="KBO"?"Futures League":"二軍",season:1,month:0,wins:0,losses:0,awards:[],proStats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0}};S.history.push(`正式簽約｜${o.team}｜進入${S.pro.status}`);save(false);renderCareer()}
+function signPro(){let o=S.offer;S.stage="職業";S.pro={league:o.league,team:o.team,rawTeam:o.rawTeam,status:o.league==="MLB"?"新人聯盟／Complex":o.league==="NPB"?"育成選手":o.league==="KBO"?"Futures League":"二軍",season:1,month:0,wins:0,losses:0,awards:[],proStats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0}};S.history.push(`正式簽約｜${o.team}｜進入${S.pro.status}`);save(false);renderCareer()}
+const PRO_SYSTEM={
+ MLB:{
+  ladder:["新人聯盟／Complex","低階1A","高階1A","2A","3A","40人名單","大聯盟現役名單"],
+  details:["春訓","延長春訓","小聯盟選項權","40人名單","大聯盟現役名單","傷兵名單","指定讓渡","讓渡程序","交易","薪資仲裁","自由球員"]
+ },
+ NPB:{ladder:["育成選手","支配下登錄","二軍","一軍出場選手登錄"],details:["育成契約","支配下登錄","登錄抹消","自由球員","入札／海外移籍"]},
+ KBO:{ladder:PRO_SYSTEM.KBO.ladder,details:["新人選秀","Futures League","一軍登錄／抹消","自由球員","海外移籍"]},
+ CPBL:{ladder:PRO_SYSTEM.CPBL.ladder,details:["新人選拔","二軍","一軍登錄","註冊／註銷","交易","自由球員","旅外"]},
+};
+const MLB_LEVEL_INFO={
+ "新人聯盟／Complex":"新人與復健球員起步層級",
+ "低階1A":"第一個完整球季職業層級",
+ "高階1A":"進階養成層級",
+ "2A":"高階新秀與大聯盟候補的重要分水嶺",
+ "3A":"最接近大聯盟的層級",
+ "40人名單":"受球團大聯盟名單保護，但不等於目前在大聯盟",
+ "大聯盟現役名單":"正式大聯盟出賽名單"
+};
+
+const MLB_AFFILIATES={
+"Los Angeles Dodgers":["ACL道奇","庫卡蒙格牧場震動","五大湖潛鳥","土爾沙鑽探者","奧克拉荷馬市彗星"],
+"New York Yankees":["FCL洋基","坦帕焦油","哈德遜谷叛徒","薩默塞特愛國者","史克蘭頓／威爾克斯-巴里鐵路騎士"],
+"Seattle Mariners":["ACL水手","莫德斯托堅果","艾佛瑞特水蛙","阿肯色旅行者","塔科馬雨山"]
+};
+function orgDetails(){
+ ensurePro();let p=S.pro;if(p.league!=="MLB")return "";
+ let a=MLB_AFFILIATES[p.rawTeam]||["Complex球隊","低階1A附屬隊","高階1A附屬隊","2A附屬隊","3A附屬隊"];
+ let levels=["新人聯盟／Complex","低階1A","高階1A","2A","3A"];
+ return `<details><summary>🧢 小聯盟球團</summary><div class="event">${levels.map((z,i)=>`${p.status===z?"▶":"○"} ${z}｜${a[i]}`).join("<br>")}</div></details>`;
+}
+function careerFrontOffice(){
+ ensurePro();let p=S.pro;
+ p.prospect??=1;p.orgRank??=1;p.mlbRank??=Math.max(1,Math.floor(Math.random()*8)+1);p.contract??={years:1,salary:p.league==="MLB"?800000:1200,status:"新人合約"};
+ let c=p.contract;
+ return `<details open><summary>📋 球團辦公室</summary><div class="event">
+ <b>球團新秀排名：</b>#${p.orgRank}<br>${p.league==="MLB"?`<b>MLB新秀排名：</b>#${p.mlbRank}<br>`:""}
+ <b>合約：</b>${c.status}｜${c.years}年｜${p.league==="MLB"?"US$ "+c.salary.toLocaleString():c.salary+" 萬"}<br>
+ <b>球探總評：</b>80／80｜頂級潛力｜二刀流世代級天賦<br>
+ <b>健康：</b>完全健康（MAX特性：不受傷）</div></details>`;
+}
+function transactionEvent(){
+ ensurePro();let p=S.pro,r=Math.random(),msg="";
+ if(p.league==="MLB"){
+   if(p.status==="3A"&&r<.45){p.status="40人名單";msg="球團將你加入40人名單"}
+   else if(p.status==="40人名單"&&r<.70){p.status="大聯盟現役名單";msg="球團正式將你升上大聯盟"}
+   else if(p.status==="大聯盟現役名單"&&r<.12){msg="交易詢價出現，但球團拒絕出售頭號新秀"}
+   else msg="球團維持目前名單配置";
+ } else msg="球團完成本月登錄檢討";
+ S.history.push(`${p.team}｜球團事務｜${msg}`);return msg
+}
+function offseason(){
+ ensurePro();let p=S.pro,x=p.contract;
+ if(p.season>=3&&p.league==="MLB"){x.status="薪資仲裁／續約評估";x.salary=Math.round(x.salary*1.65)}
+ else{x.salary=Math.round(x.salary*1.12)}
+ if(p.season>=6){x.status="自由球員資格評估"}
+ S.history.push(`${p.team}｜休賽季｜${x.status}｜薪資 ${x.salary}`);
+}
 const PRO_CAL=["春訓","3／4月","5月","6月","7月","8月","9月","季後賽","休賽季"];
-function ensurePro(){if(!S.pro)return;S.pro.month??=0;S.pro.wins??=0;S.pro.losses??=0;S.pro.salary??=(S.pro.league==="MLB"?800000:S.pro.league==="NPB"?1200:S.pro.league==="KBO"?4000:60);S.pro.proStats??={g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0};S.pro.awards??=[]}
+function ensurePro(){if(!S.pro)return;S.pro.month??=0;S.pro.options??=3;S.pro.wins??=0;S.pro.losses??=0;S.pro.salary??=(S.pro.league==="MLB"?800000:S.pro.league==="NPB"?1200:S.pro.league==="KBO"?4000:60);S.pro.proStats??={g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0};S.pro.awards??=[]}
 function proMonth(){
  ensurePro();let p=S.pro,phase=PRO_CAL[p.month],x=p.proStats;
  if(phase==="春訓"){S.history.push(`${p.team}｜春訓｜競爭${p.status}席位`);promote(true)}
@@ -88,17 +156,17 @@ function proMonth(){
    x.g+=games;x.ab+=games*4;x.h+=Math.round(games*4*(.36+Math.random()*.08));x.hr+=Math.floor(games*(.25+Math.random()*.25));x.rbi+=Math.floor(games*(.8+Math.random()*.8));
    if(S.player.type!=="野手"){let ip=games*3+Math.floor(Math.random()*25);x.ip+=ip;x.k+=Math.floor(ip*(1.35+Math.random()*.35));x.er+=Math.floor(ip*.18)}
    if(Math.random()<.65)promote(false);
-   S.history.push(`${p.team}｜${phase}｜${wins}勝${games-wins}敗｜${p.status}`);
+   S.history.push(`${p.team}｜${phase}｜${wins}勝${games-wins}敗｜${p.status}`);if(Math.random()<.35)transactionEvent();
  }else if(phase==="季後賽"){
    let made=p.wins>=p.losses||Math.random()<.55;S.history.push(`${p.team}｜${made?"進入季後賽":"例行賽結束，未進季後賽"}`);
    if(made&&Math.random()<.45){p.awards.push(`第${p.season}季冠軍`);S.history.push(`${p.team}｜奪得聯盟冠軍／世界大賽級冠軍事件`)}
  }else{
-   awardSeason();p.season++;p.month=-1;p.wins=0;p.losses=0;S.history.push(`進入職業第${p.season}季`);
+   awardSeason();offseason();p.season++;p.month=-1;p.wins=0;p.losses=0;S.history.push(`進入職業第${p.season}季`);
  }
  p.month++;save(false);renderCareer()
 }
 function promote(force){
- let p=S.pro,paths={MLB:["新人聯盟／Complex","1A","高階1A","2A","3A","40人名單","大聯盟現役名單"],NPB:["支配下候補／球團編成","二軍","一軍出場選手登錄"],KBO:["Futures League","一軍登錄"],CPBL:["二軍","一軍"]},path=paths[p.league]||paths.CPBL,i=path.indexOf(p.status);
+ let p=S.pro,path=(PRO_SYSTEM[p.league]||PRO_SYSTEM.CPBL).ladder,i=path.indexOf(p.status);
  if(i>=0&&i<path.length-1&&(force||Math.random()<.72)){let old=p.status;p.status=path[i+1];S.history.push(`${p.team}｜升格：${old} → ${p.status}`)}
 }
 function awardSeason(){
@@ -125,35 +193,45 @@ function manualProGame(id){
  renderLive();
 }
 function renderLive(){
- let L=S.live;if(!L)return;let pitching=L.role.includes("投手")&&L.inn<=7;
+ let L=S.live;if(!L)return;let pitching=L.role.includes("投手")&&L.inn<=7&&L.half==="下";
  $("gameTitle").textContent=`第 ${L.gid} 場｜${L.inn}局${L.half}｜${L.us}：${L.them}`;
  $("gameBody").innerHTML=`<div class="event"><b>${pitching?"你正在投球":"你正在打擊／守備"}</b><br>
  出局 ${L.outs}｜球數 ${L.balls}-${L.strikes}｜壘包 ${L.bases.map((x,i)=>x?["一","二","三"][i]:"－").join(" ")}<br>
  比分：${S.pro.team} ${L.us}：${L.them}</div>
- <div class="grid">${pitching?`<select id="ptype"><option>四縫線速球</option><option>二縫線速球</option><option>卡特球</option><option>滑球</option><option>曲球</option><option>變速球</option><option>指叉球</option><option>伸卡球</option></select><div><b>九宮格目標</b><div style="display:grid;grid-template-columns:repeat(3,48px);gap:3px;margin-top:5px">${[1,2,3,4,5,6,7,8,9].map(z=>`<button style="padding:8px" onclick="pitch(document.getElementById('ptype').value,${z})">${z}</button>`).join("")}</div></div>`:`<button class="accent" onclick="swing('強振')">強振</button><button onclick="swing('正常')">正常揮擊</button><button onclick="swing('選球')">選球</button><button onclick="swing('短打')">短打</button><button onclick="steal()">盜壘</button>`}</div>
+ <div class="grid">${pitching?`<button class="accent" onclick="pitchCall('全力攻擊好球帶')">🔥 全力對決</button><button onclick="pitchCall('邊角引誘')">🎯 邊角引誘</button><button onclick="pitchCall('決勝球')">⚡ 決勝球</button><button onclick="pitchCall('省球數')">🧠 省球數</button>`:`<button class="accent" onclick="swing('強振')">強振</button><button onclick="swing('正常')">正常揮擊</button><button onclick="swing('選球')">選球</button><button onclick="swing('短打')">短打</button><button onclick="steal()">盜壘</button>`}</div>
  <div class="event" style="max-height:220px;overflow:auto">${L.log.slice(-10).reverse().join("<br>")||"比賽開始"}</div>`;
 }
 function swing(mode){
  let L=S.live;if(!L)return;L.pa++;let r=Math.random(),res;
- if(mode==="選球"&&r<.45){L.balls++;res="壞球";if(L.balls>=4){res="四壞保送";advance(1);resetCount()}}
- else if(r<.12){L.strikes++;res="揮空";if(L.strikes>=3){res="三振";L.outs++;resetCount()}}
- else if(r<.23){L.strikes=Math.min(2,L.strikes+1);res="界外球"}
- else if(r<.45){res="一壘安打";advance(1);resetCount()}
- else if(r<.62){res="二壘安打";advance(2);resetCount()}
- else if(r<.69){res="三壘安打";advance(3);resetCount()}
- else if(r<.83){res="全壘打";advance(4);resetCount()}
- else {if(mode!=="短打"&&L.bases[2]&&L.outs<2&&Math.random()<.45){res="高飛犧牲打，三壘跑者得分";L.bases[2]=0;L.us++}else res=mode==="短打"?"犧牲觸擊出局":"強勁出局";L.outs++;resetCount()}
+ if(mode==="選球"&&r<.50){L.balls++;res="壞球";if(L.balls>=4){res="四壞保送";advance(1);resetCount()}}
+ else if(r<.035){L.strikes++;res="揮空";if(L.strikes>=3){res="三振";L.outs++;resetCount()}}
+ else if(r<.08){L.strikes=Math.min(2,L.strikes+1);res="界外球"}
+ else if(r<.36){res="一壘安打";advance(1);resetCount()}
+ else if(r<.58){res="二壘安打";advance(2);resetCount()}
+ else if(r<.64){res="三壘安打";advance(3);resetCount()}
+ else if(r<.82){res="全壘打";advance(4);resetCount()}
+ else {if(mode!=="短打"&&L.bases[2]&&L.outs<2&&Math.random()<.65){res="高飛犧牲打，三壘跑者得分";L.bases[2]=0;L.us++}else res=mode==="短打"?"犧牲觸擊出局":"強勁出局";L.outs++;resetCount()}
  L.log.push(`打擊｜${mode} → ${res}`);checkInning()
 }
-function pitch(kind,zone=5){
- let L=S.live;if(!L)return;L.pitches++;let edge=[1,3,7,9].includes(zone),center=zone===5,velo=pitchVelo(kind),r=Math.random(),res;
- let strikeChance=center?.62:edge?.48:.54;
- if(r<strikeChance){L.strikes++;res=`${kind} ${velo} km/h｜${zone}號位 好球`;if(L.strikes>=3){res=`${kind}｜三振！`;L.outs++;resetCount()}}
- else if(r<strikeChance+.18){L.balls++;res=`${kind} ${velo} km/h｜${zone}號位 壞球`;if(L.balls>=4){res=`${kind}｜四壞`;oppAdvance(1);resetCount()}}
- else if(r<strikeChance+.36){res=`${kind} ${velo} km/h｜滾地球`;defensePlay();resetCount()}
- else if(r<strikeChance+.45){res=`${kind} ${velo} km/h｜被敲安打`;oppAdvance(1);resetCount()}
- else {res=`${kind} ${velo} km/h｜被轟全壘打`;oppAdvance(4);resetCount()}
- L.log.push(`投球 #${L.pitches}｜${res}`);checkInning()
+function pitchCall(plan){
+ let pools={
+ "全力攻擊好球帶":["四縫線速球","二縫線速球","卡特球"],
+ "邊角引誘":["滑球","曲球","變速球"],
+ "決勝球":["指叉球","滑球","四縫線速球"],
+ "省球數":["二縫線速球","伸卡球","卡特球"]
+ },a=pools[plan],kind=a[Math.floor(Math.random()*a.length)],zone=plan==="邊角引誘"?[1,3,7,9][Math.floor(Math.random()*4)]:plan==="決勝球"?[2,5,8][Math.floor(Math.random()*3)]:5;
+ pitch(kind,zone,plan)
+}
+function pitch(kind,zone=5,plan=''){
+ let L=S.live;if(!L)return;L.pitches++;let velo=pitchVelo(kind),r=Math.random(),res;
+ // MAX 100 + D6=6: elite command/stuff. Still not guaranteed.
+ let kRate=plan==="決勝球"?.62:.48, weak=.30, hit=.035, hr=.004;
+ if(r<kRate){L.strikes++;res=`${kind} ${velo} km/h｜揮空`;if(L.strikes>=3){res=`${kind} ${velo} km/h｜三振！`;L.outs++;resetCount()}}
+ else if(r<kRate+weak){res=`${kind} ${velo} km/h｜弱擊球`;defensePlay();resetCount()}
+ else if(r<kRate+weak+hit){res=`${kind} ${velo} km/h｜被敲安打`;oppAdvance(1);resetCount()}
+ else if(r<kRate+weak+hit+hr){res=`${kind} ${velo} km/h｜失投被轟`;oppAdvance(4);resetCount()}
+ else {L.strikes=Math.min(2,L.strikes+1);res=`${kind} ${velo} km/h｜擦棒界外`}
+ L.log.push(`投球 #${L.pitches}｜${plan||"配球"}｜${res}`);checkInning()
 }
 function pitchVelo(k){let base=k.includes("四縫")?160:k.includes("二縫")?157:k.includes("卡特")?151:k.includes("伸卡")?155:k.includes("指叉")?146:k.includes("滑")?143:k.includes("曲")?132:139;return base+Math.floor(Math.random()*5)}
 function defensePlay(){let L=S.live,r=Math.random();if(r<.20&&L.bases[0]){L.outs=Math.min(3,L.outs+2);L.bases[0]=0;L.log.push("守備｜二游間漂亮轉傳，雙殺！")}else if(r<.65){L.outs++;L.log.push(`守備｜${S.player.pos}完成刺殺`)}else{L.outs++;L.log.push("守備｜外野接殺")}}
@@ -164,12 +242,20 @@ function oppAdvance(n){let L=S.live;if(n===4){L.them+=1+L.bases.reduce((a,b)=>a+
 function checkInning(){
  let L=S.live;if(L.outs<3){renderLive();return}
  L.outs=0;L.balls=0;L.strikes=0;L.bases=[0,0,0];
- if(L.half==="上"){L.half="下";L.log.push(`── ${L.inn}局下 ──`)}
- else{L.inn++;L.half="上";L.log.push(`── ${L.inn}局上 ──`)}
+ if(L.half==="上"){
+   L.half="下";L.log.push(`── ${L.inn}局下 ──`);
+   // 野手先發：下半局由守備事件快速模擬；投手先發則交給玩家逐球投。
+   if(!L.role.includes("投手")||L.inn>7){
+      let runs=Math.random()<.18?1:0;L.them+=runs;
+      L.log.push(runs?"守備半局｜對手攻下1分":"守備半局｜三上三下");
+      if(Math.random()<.38)L.log.push(`守備機會｜${S.player.pos}完成精彩守備`);
+      L.half="上";L.inn++;L.log.push(`── ${L.inn}局上 ──`);
+   }
+ } else {
+   L.inn++;L.half="上";L.log.push(`── ${L.inn}局上 ──`);
+ }
  if(L.inn>9&&L.us!==L.them){finishLive();return}
  if(L.inn>12&&L.us===L.them){L.us++;finishLive();return}
- // Non-user half is compactly simulated so the game remains playable.
- if(!(L.role.includes("投手")&&L.inn<=7)){let add=Math.random()<.28?1:0;L.them+=add}
  renderLive()
 }
 function finishLive(){
@@ -188,7 +274,11 @@ function simProGames(n){
  S.history.push(`${S.pro.team}｜快速模擬 ${gs.length} 場`);save(false);renderCareer()
 }
 function proPanel(){
- ensurePro();let p=S.pro,x=p.proStats,phase=PRO_CAL[p.month]||"休賽季";return `<div class="event"><b>${p.team}｜職業第${p.season}季</b><br>目前：${p.status}｜階段：${phase}<br>球隊：${p.wins}勝 ${p.losses}敗<br>本季：G ${x.g}｜H ${x.h}｜HR ${x.hr}｜RBI ${x.rbi}｜IP ${x.ip}.0｜K ${x.k}<br>${p.awards.length?`榮譽：${p.awards.join("、")}`:""}</div>${["3／4月","5月","6月","7月","8月","9月"].includes(phase)?scheduleHtml():""}<button class="accent" onclick="proMonth()">完成 ${phase} 並推進月份</button>`}
+ ensurePro();let p=S.pro,x=p.proStats,phase=PRO_CAL[p.month]||"休賽季",sys=PRO_SYSTEM[p.league]||PRO_SYSTEM.CPBL,li=sys.ladder.indexOf(p.status),next=li>=0&&li<sys.ladder.length-1?sys.ladder[li+1]:"最高層級";
+ let roster=p.league==="MLB"?(p.status==="40人名單"||p.status==="大聯盟現役名單"?"40人名單：是":"40人名單：否"):"球團登錄：有效";
+ let option=p.league==="MLB"?(p.options??3):null;
+ return `<div class="event"><b>${p.team}｜職業第${p.season}季</b><br>目前層級：<b>${p.status}</b>｜下一層：${next}<br>${MLB_LEVEL_INFO[p.status]||""}<br>${roster}${option!==null?`｜剩餘選項年：${option}`:""}<br>階段：${phase}｜球隊：${p.wins}勝 ${p.losses}敗<br>本季：G ${x.g}｜H ${x.h}｜HR ${x.hr}｜RBI ${x.rbi}｜IP ${x.ip}.0｜K ${x.k}<br>${p.awards.length?`榮譽：${p.awards.join("、")}`:""}</div>
+ <details><summary>🏟️ 球團養成／名單制度</summary><div class="event"><b>升級路徑</b><br>${sys.ladder.map((z,k)=>`${k===li?"▶":"○"} ${z}`).join("<br>")}<br><br><b>制度事件</b><br>${sys.details.join("｜")}</div></details>${careerFrontOffice()}${orgDetails()}${["3／4月","5月","6月","7月","8月","9月"].includes(phase)?scheduleHtml():""}<button class="accent" onclick="proMonth()">完成 ${phase} 並推進月份</button>`}
 function renderStats(){let x=S.stats;$("stats").innerHTML=`G ${x.g}｜AB ${x.ab}｜H ${x.h}｜HR ${x.hr}｜RBI ${x.rbi}<br>IP ${x.ip}.0｜K ${x.k}｜ER ${x.er}｜ERA ${x.ip?(x.er*9/x.ip).toFixed(2):"0.00"}<br>守備 PO ${x.po}｜A ${x.a}｜E ${x.e}`}
 function renderWorld(){let tabs=["MLB","NPB","KBO","CPBL"];$("leagueTabs").innerHTML=tabs.map(x=>`<button onclick="league='${x}';renderWorld()">${x}</button>`).join("");if(league==="MLB"){$("leagueView").innerHTML=`<div class="event"><b>MLB 專屬制度</b><br>新人選秀／國際業餘簽約 → 1A → 高階1A → 2A → 3A → 40人名單 → 大聯盟現役名單<br>另追蹤：下放、升上大聯盟、指定讓渡、讓渡程序、傷兵名單、交易、薪資仲裁、自由球員。</div>`+Object.entries(MLB).map(([lg,ds])=>`<h2>${lg}</h2>`+Object.entries(ds).map(([d,ts])=>`<h3>${d}</h3>${ts.map(t=>`<button class="team" onclick="team('${t}')">${TEAM_ZH[t]}</button>`).join("")}`).join("")).join("")}else{let arr=league==="NPB"?NPB:league==="KBO"?KBO:CPBL;$("leagueView").innerHTML=`<div class="event">${league==="NPB"?"日職：支配下／育成、一軍登錄、FA、入札制度各自追蹤。":league==="KBO"?"韓職：新人選秀、Futures、一軍登錄／抹消、FA與海外交涉。":"中職：選秀、簽約、二軍／一軍、FA與旅外流程。"}</div>`+arr.map(x=>`<span class="pill">${x}</span>`).join("")}}
 function team(t){let d=DATA[t]||{manager:"資料核對中",coaches:[],players:[],farm:[]};$("leagueView").innerHTML=`<button onclick="renderWorld()">← 返回</button><h2>${TEAM_ZH[t]}</h2><b>總教練：</b>${d.manager}<h3>教練團</h3>${d.coaches.length?d.coaches.map(x=>`<div>${x}</div>`).join(""):"<span class=mut>持續核對2026官方資料</span>"}<h3>球員</h3>${d.players.length?`<table>${d.players.map(x=>`<tr>${x.split("｜").map(y=>`<td>${y}</td>`).join("")}</tr>`).join("")}</table>`:"<span class=mut>持續核對2026現役／40人名單</span>"}<h3>農場</h3>${d.farm.map(x=>`<div class=pill>${x}</div>`).join("")}`}
