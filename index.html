@@ -5,7 +5,7 @@ body{margin:0;background:linear-gradient(145deg,#06110b,#10271c);color:var(--t);
 main{max-width:900px;margin:auto;padding:14px}.card{background:#0e2118;border:1px solid #28523d;border-radius:18px;padding:16px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 button,select,input{font:inherit;border-radius:12px;border:1px solid #37684f;padding:11px;background:#163425;color:#fff}button{cursor:pointer;background:#1c5036;font-weight:700}.accent{background:var(--g);color:#062113}.mut{color:var(--m)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#173b29;margin:3px}.tabs{display:flex;gap:7px;overflow:auto}.tabs button{white-space:nowrap}.hide{display:none}.event{background:#132f21;border-left:4px solid var(--g);padding:12px;border-radius:10px;margin:9px 0}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid #294a39}.team{margin:5px 3px;padding:8px 10px}.gold{color:var(--y)}h1{margin-bottom:4px}h2{margin-top:5px}
-</style></head><body><main><div class="mut" style="text-align:right;font-size:11px">BUILD 0.10 COMPLETE</div>
+</style></head><body><main><div class="mut" style="text-align:right;font-size:11px">BUILD 0.11 CAREER FIX</div>
 <h1>⚾ Baseball Life MAX</h1><div class="mut">世界照規則運作，只有你是 BUG。</div>
 <div class="tabs"><button onclick="show('career')">生涯</button><button onclick="show('world')">棒球世界</button><button onclick="show('scout')">球探</button><button onclick="show('record')">紀錄</button></div>
 
@@ -215,67 +215,48 @@ function chooseRoute(l){
 function renderOffer(){
  let o=S.offer;if(!o)return;
  $("gameTitle").textContent="職業生涯入口";
- $("gameBody").innerHTML=`<div class="event"><b>${o.team}</b><br>${o.method}｜第${o.round}輪<br>球團將你評為：80級頂尖二刀流／世代級天賦</div><button class="accent" onclick="signPro()">接受並簽約</button> <button onclick="careerDecision()">重新選擇路線</button>`;
+ $("gameBody").innerHTML=`<div class="event"><b>${o.team}</b><br>${o.method}｜第${o.round}輪<br>球團將你評為：80級頂尖二刀流／世代級天賦</div><button class="accent" onclick="signPro()">接受並簽約 → 進入職業球團</button> <button onclick="careerDecision()">重新選擇路線</button><br><small class="mut">簽約後會直接進入新人聯盟／小聯盟球團，不會停留在這個畫面。</small>`;
 }
-function signPro(){let o=S.offer;S.stage="職業";S.pro={league:o.league,team:o.team,rawTeam:o.rawTeam,status:o.league==="MLB"?"新人聯盟／Complex":o.league==="NPB"?"育成選手":o.league==="KBO"?"Futures League":"二軍",season:1,month:0,wins:0,losses:0,awards:[],proStats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0}};S.history.push(`正式簽約｜${o.team}｜進入${S.pro.status}`);save(false);renderCareer()}
-const PRO_SYSTEM={
- MLB:{
-  ladder:["新人聯盟／Complex","低階1A","高階1A","2A","3A","40人名單","大聯盟現役名單"],
-  details:["春訓","延長春訓","小聯盟選項權","40人名單","大聯盟現役名單","傷兵名單","指定讓渡","讓渡程序","交易","薪資仲裁","自由球員"]
- },
- NPB:{ladder:["育成選手","支配下登錄","二軍","一軍出場選手登錄"],details:["育成契約","支配下登錄","登錄抹消","自由球員","入札／海外移籍"]},
- KBO:{ladder:PRO_SYSTEM.KBO.ladder,details:["新人選秀","Futures League","一軍登錄／抹消","自由球員","海外移籍"]},
- CPBL:{ladder:PRO_SYSTEM.CPBL.ladder,details:["新人選拔","二軍","一軍登錄","註冊／註銷","交易","自由球員","旅外"]},
-};
-const MLB_LEVEL_INFO={
- "新人聯盟／Complex":"新人與復健球員起步層級",
- "低階1A":"第一個完整球季職業層級",
- "高階1A":"進階養成層級",
- "2A":"高階新秀與大聯盟候補的重要分水嶺",
- "3A":"最接近大聯盟的層級",
- "40人名單":"受球團大聯盟名單保護，但不等於目前在大聯盟",
- "大聯盟現役名單":"正式大聯盟出賽名單"
-};
-
-const MLB_AFFILIATES={
-"Los Angeles Dodgers":["ACL道奇","庫卡蒙格牧場震動","五大湖潛鳥","土爾沙鑽探者","奧克拉荷馬市彗星"],
-"New York Yankees":["FCL洋基","坦帕焦油","哈德遜谷叛徒","薩默塞特愛國者","史克蘭頓／威爾克斯-巴里鐵路騎士"],
-"Seattle Mariners":["ACL水手","莫德斯托堅果","艾佛瑞特水蛙","阿肯色旅行者","塔科馬雨山"]
-};
-function orgDetails(){
- ensurePro();let p=S.pro;if(p.league!=="MLB")return "";
- let a=MLB_AFFILIATES[p.rawTeam]||["Complex球隊","低階1A附屬隊","高階1A附屬隊","2A附屬隊","3A附屬隊"];
- let levels=["新人聯盟／Complex","低階1A","高階1A","2A","3A"];
- return `<details><summary>🧢 小聯盟球團</summary><div class="event">${levels.map((z,i)=>`${p.status===z?"▶":"○"} ${z}｜${a[i]}`).join("<br>")}</div></details>`;
+function signPro(){
+ try{
+  let o=S.offer||{};
+  let league=o.league||"MLB", team=o.team||"運動家";
+  S.stage="職業";
+  S.offer=null;
+  S.pro={
+   league,team,rawTeam:o.rawTeam||team,
+   status:league==="MLB"?"新人聯盟／Complex":league==="NPB"?"育成選手":league==="KBO"?"Futures League":"二軍",
+   season:1,month:0,wins:0,losses:0,options:3,awards:[],
+   proStats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0},
+   contract:{years:1,salary:league==="MLB"?800000:1200,status:"新人合約"},
+   schedule:[]
+  };
+  S.world??={standings:{},series:{}};
+  S.career??={seasons:[],awards:[],contracts:[],transactions:[],records:{hr:0,h:0,k:0,w:0}};
+  S.history.push(`正式簽約｜${team}｜進入${S.pro.status}`);
+  localStorage.setItem(KEY,JSON.stringify(S));
+  renderCareer();
+ }catch(err){
+  console.error(err);
+  alert("已偵測到舊存檔相容問題，正在修復職業生涯。");
+  S.stage="職業";
+  S.offer=null;
+  S.pro={league:"MLB",team:"運動家",rawTeam:"Athletics",status:"新人聯盟／Complex",season:1,month:0,wins:0,losses:0,options:3,awards:[],proStats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0},contract:{years:1,salary:800000,status:"新人合約"},schedule:[]};
+  localStorage.setItem(KEY,JSON.stringify(S));
+  location.reload();
+ }
 }
-function careerFrontOffice(){
- ensurePro();let p=S.pro;
- p.prospect??=1;p.orgRank??=1;p.mlbRank??=Math.max(1,Math.floor(Math.random()*8)+1);p.contract??={years:1,salary:p.league==="MLB"?800000:1200,status:"新人合約"};
- let c=p.contract;
- return `<details open><summary>📋 球團辦公室</summary><div class="event">
- <b>球團新秀排名：</b>#${p.orgRank}<br>${p.league==="MLB"?`<b>MLB新秀排名：</b>#${p.mlbRank}<br>`:""}
- <b>合約：</b>${c.status}｜${c.years}年｜${p.league==="MLB"?"US$ "+c.salary.toLocaleString():c.salary+" 萬"}<br>
- <b>球探總評：</b>80／80｜頂級潛力｜二刀流世代級天賦<br>
- <b>健康：</b>完全健康（MAX特性：不受傷）</div></details>`;
+function migrateSave(){
+ if(!S.player)return;
+ S.player.pos2??="無";S.player.pos??="RF";S.player.hand??="右投左打";
+ S.stats??={g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0,po:0,a:0,e:0};
+ S.scouts??={};S.history??=[];
+ if(S.stage==="職業"&&!S.pro&&S.offer){S.stage="畢業／選秀"}
+ if(S.pro){
+  S.pro.proStats??={g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0};
+  S.pro.awards??=[];S.pro.schedule??=[];S.pro.month??=0;S.pro.season??=1;S.pro.wins??=0;S.pro.losses??=0;S.pro.options??=3;
+ }
 }
-function transactionEvent(){
- ensurePro();let p=S.pro,r=Math.random(),msg="";
- if(p.league==="MLB"){
-   if(p.status==="3A"&&r<.45){p.status="40人名單";msg="球團將你加入40人名單"}
-   else if(p.status==="40人名單"&&r<.70){p.status="大聯盟現役名單";msg="球團正式將你升上大聯盟"}
-   else if(p.status==="大聯盟現役名單"&&r<.12){msg="交易詢價出現，但球團拒絕出售頭號新秀"}
-   else msg="球團維持目前名單配置";
- } else msg="球團完成本月登錄檢討";
- addTransaction(`${p.team}｜${msg}`);return msg
-}
-function offseason(){
- ensurePro();let p=S.pro,x=p.contract;
- if(p.season>=3&&p.league==="MLB"){x.status="薪資仲裁／續約評估";x.salary=Math.round(x.salary*1.65)}
- else{x.salary=Math.round(x.salary*1.12)}
- if(p.season>=6){x.status="自由球員資格評估"}
- S.history.push(`${p.team}｜休賽季｜${x.status}｜薪資 ${x.salary}`);
-}
-const PRO_CAL=["春訓","3／4月","5月","6月","7月","8月","9月","季後賽","休賽季"];
 function ensurePro(){if(!S.pro)return;S.pro.month??=0;S.pro.options??=3;S.pro.wins??=0;S.pro.losses??=0;S.pro.salary??=(S.pro.league==="MLB"?800000:S.pro.league==="NPB"?1200:S.pro.league==="KBO"?4000:60);S.pro.proStats??={g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0};S.pro.awards??=[]}
 function proMonth(){
  ensurePro();let p=S.pro,phase=PRO_CAL[p.month],x=p.proStats;
@@ -413,5 +394,5 @@ function team(t){let d=DATA[t]||{manager:"資料核對中",coaches:[],players:[]
 function renderScout(){$("scoutView").innerHTML=Object.entries(S.scouts).length?Object.entries(S.scouts).map(([l,x])=>`<div class="event"><b>${l}</b>｜觀察 ${x.views} 次｜興趣 ${x.interest}/100<br>20–80評分：打擊80｜長打80｜速度80｜臂力80｜守備80｜投球80｜控球80</div>`).join(""):"完成正式比賽後，各聯盟球探會累積獨立觀察。";if(S.stage==="高中"&&$("scoutView"))$("scoutView").innerHTML+=`<h3>球團別追蹤</h3>${hsScoutTable()}`;}
 function renderHistory(){$("history").innerHTML=S.history.length?S.history.slice().reverse().map(x=>`<div>${x}</div>`).join(""):"尚無紀錄"}
 function save(a=true){localStorage.setItem(KEY,JSON.stringify(S));if(a)alert("已儲存")}function reset(){if(confirm("確定刪除生涯？")){localStorage.removeItem(KEY);location.reload()}}
-function load(){schools();try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&x.player)S=x}catch(e){}if(S.player)renderCareer()}load();
+function load(){schools();try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&x.player)S=x}catch(e){}if(S.player){migrateSave();localStorage.setItem(KEY,JSON.stringify(S));renderCareer()}}load();
 </script></body></html>
