@@ -5,9 +5,9 @@ body{margin:0;background:linear-gradient(145deg,#06110b,#10271c);color:var(--t);
 main{max-width:900px;margin:auto;padding:14px}.card{background:#0e2118;border:1px solid #28523d;border-radius:18px;padding:16px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 button,select,input{font:inherit;border-radius:12px;border:1px solid #37684f;padding:11px;background:#163425;color:#fff}button{cursor:pointer;background:#1c5036;font-weight:700}.accent{background:var(--g);color:#062113}.mut{color:var(--m)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#173b29;margin:3px}.tabs{display:flex;gap:7px;overflow:auto}.tabs button{white-space:nowrap}.hide{display:none}.event{background:#132f21;border-left:4px solid var(--g);padding:12px;border-radius:10px;margin:9px 0}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid #294a39}.team{margin:5px 3px;padding:8px 10px}.gold{color:var(--y)}h1{margin-bottom:4px}h2{margin-top:5px}
-</style></head><body><main><div class="mut" style="text-align:right;font-size:11px">BUILD 0.20 CLEAN REBUILD</div>
+</style></head><body><main><div class="mut" style="text-align:right;font-size:11px">BUILD 0.21 NEW CAREER FIX</div>
 <h1>⚾ Baseball Life MAX</h1><div class="mut">世界照規則運作，只有你是 BUG。</div>
-<div class="tabs"><button onclick="show('career')">生涯</button><button onclick="show('world')">棒球世界</button><button onclick="show('scout')">球探</button><button onclick="show('record')">紀錄</button></div>
+<div class="tabs"><button onclick="show('career')">生涯</button><button onclick="newCareer()">🆕 全新生涯</button><button onclick="show('world')">棒球世界</button><button onclick="show('scout')">球探</button><button onclick="show('record')">紀錄</button></div>
 
 <section id="career">
 <div id="setup" class="card"><h2>建立球員</h2><div class="grid">
@@ -31,7 +31,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 
 <section id="world" class="hide"><div class="card"><h2>🌏 棒球世界</h2><div class="tabs" id="leagueTabs"></div><div id="leagueView"></div></div></section>
 <section id="scout" class="hide"><div class="card"><h2>🔭 球探報告</h2><div id="scoutView"></div></div></section>
-<section id="record" class="hide"><div class="card"><h2>📖 生涯紀錄</h2><div id="history"></div><button onclick="save()">儲存</button><button onclick="reset()">刪除生涯</button></div></section>
+<section id="record" class="hide"><div class="card"><h2>📖 生涯紀錄</h2><div id="history"></div><button onclick="save()">儲存</button><button onclick="newCareer()">🆕 結束目前生涯／重新建立角色</button></div></section>
 </main><script>
 "use strict";const KEY="BLMAX_WORLD_3";
 const SCHOOL={
@@ -59,6 +59,29 @@ const CPBL=["中信兄弟","統一7-ELEVEn獅","樂天桃猿","富邦悍將","�
 let S={player:null,game:0,year:1,stage:"高中",pro:null,offer:null,stats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0,po:0,a:0,e:0},history:[],scouts:{},draft:null};let league="MLB";
 function $(x){return document.getElementById(x)} function show(id){["career","world","scout","record"].forEach(x=>$(x).classList.toggle("hide",x!==id));if(id==="world")renderWorld();if(id==="scout")renderScout();if(id==="record")renderHistory()}
 function schools(){let n=$("nation")?.value||"台灣",list=SCHOOL[n]||SCHOOL["台灣"];if($("school"))$("school").innerHTML=list.map(x=>`<option value="${x}">${x}</option>`).join("")}
+
+function freshState(){
+ return {
+  player:null,stage:"高中",year:1,game:0,offer:null,pro:null,live:null,nextHSOpponent:null,
+  stats:{g:0,ab:0,h:0,hr:0,rbi:0,ip:0,k:0,er:0,po:0,a:0,e:0},
+  scouts:{CPBL:0,NPB:0,KBO:0,MLB:0},history:[],
+  world:{standings:{},series:{}},
+  career:{seasons:[],awards:[],contracts:[],transactions:[],records:{hr:0,h:0,k:0,w:0}}
+ }
+}
+function newCareer(){
+ if(!confirm("確定要結束目前生涯並建立全新角色？目前存檔會被清除。"))return;
+ try{localStorage.removeItem(KEY)}catch(e){}
+ S=freshState();
+ document.querySelectorAll("section").forEach(x=>x.classList.add("hide"));
+ $("career").classList.remove("hide");
+ $("setup").classList.remove("hide");
+ $("play").classList.add("hide");
+ $("name").value="Player";$("birthplace").value="台南";$("dob").value="2008-02-26";
+ $("height").value=180;$("weight").value=78;$("num").value=1;
+ $("nation").value="台灣";schools();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
 function newGame(){if(!$("school")||!$("school").value){schools();alert("請先選擇高中");return}S.stage="高中";S.year=1;S.game=0;S.offer=null;S.pro=null;S.live=null;S.nextHSOpponent=null;S.world={standings:{},series:{}};S.career={seasons:[],awards:[],contracts:[],transactions:[],records:{hr:0,h:0,k:0,w:0}};S.hs={event:0,reputation:55,rank:"校隊主力",clubs:{},u18:false,titles:[]};S.player={name:$("name").value||"Player",nation:$("nation").value,birthplace:$("birthplace").value,dob:$("dob").value,height:$("height").value,weight:$("weight").value,num:$("num").value,hand:$("hand").value,type:$("type").value,prole:$("prole").value,pos:$("pos").value,pos2:$("pos2").value,school:$("school").value};S.history.push(`建立球員｜${S.player.name}｜${S.player.school}`);save(false);renderCareer()}
 
 const POSITIONS=["C","1B","2B","3B","SS","LF","CF","RF"];
@@ -460,6 +483,14 @@ function renderWorld(){let tabs=["MLB","NPB","KBO","CPBL"];$("leagueTabs").inner
 function team(t){let d=DATA[t]||{manager:"資料核對中",coaches:[],players:[],farm:[]};$("leagueView").innerHTML=`<button onclick="renderWorld()">← 返回</button><h2>${TEAM_ZH[t]}</h2><b>總教練：</b>${d.manager}<h3>教練團</h3>${d.coaches.length?d.coaches.map(x=>`<div>${x}</div>`).join(""):"<span class=mut>持續核對2026官方資料</span>"}<h3>球員</h3>${d.players.length?`<table>${d.players.map(x=>`<tr>${x.split("｜").map(y=>`<td>${y}</td>`).join("")}</tr>`).join("")}</table>`:"<span class=mut>持續核對2026現役／40人名單</span>"}<h3>農場</h3>${d.farm.map(x=>`<div class=pill>${x}</div>`).join("")}`}
 function renderScout(){$("scoutView").innerHTML=Object.entries(S.scouts).length?Object.entries(S.scouts).map(([l,x])=>`<div class="event"><b>${l}</b>｜觀察 ${x.views} 次｜興趣 ${x.interest}/100<br>20–80評分：打擊80｜長打80｜速度80｜臂力80｜守備80｜投球80｜控球80</div>`).join(""):"完成正式比賽後，各聯盟球探會累積獨立觀察。";if(S.stage==="高中"&&$("scoutView"))$("scoutView").innerHTML+=`<h3>球團別追蹤</h3>${hsScoutTable()}`;}
 function renderHistory(){$("history").innerHTML=S.history.length?S.history.slice().reverse().map(x=>`<div>${x}</div>`).join(""):"尚無紀錄"}
-function save(a=true){localStorage.setItem(KEY,JSON.stringify(S));if(a)alert("已儲存")}function reset(){if(confirm("確定刪除生涯？")){localStorage.removeItem(KEY);location.reload()}}
-function load(){schools();try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&x.player)S=x}catch(e){}if(S.player){migrateSave();localStorage.setItem(KEY,JSON.stringify(S));renderCareer()}}load();
+function save(a=true){localStorage.setItem(KEY,JSON.stringify(S));if(a)alert("已儲存")}function reset(){newCareer()}
+function load(){
+ try{
+  let raw=localStorage.getItem(KEY);
+  if(raw){let parsed=JSON.parse(raw);if(parsed&&parsed.player)S=parsed}
+ }catch(e){console.warn("存檔讀取失敗，改用全新生涯",e);try{localStorage.removeItem(KEY)}catch(_){}S=freshState()}
+ schools();
+ if(S.player){try{migrateSave()}catch(e){}renderCareer()}
+ else{$("setup").classList.remove("hide");$("play").classList.add("hide")}
+}load();
 </script></body></html>
